@@ -60,6 +60,12 @@ Ouvrir le dossier
 cd ../backend
 ```
 
+Copier/coller le fichier d'env et remplir les valeurs
+
+```shell
+cp .env.example .env
+```
+
 Créer une version en local
 
 ```shell
