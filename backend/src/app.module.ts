@@ -6,9 +6,17 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
+    // Basic security again
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 10,
+    }),
+
+    // Global modules
     ConfigModule.forRoot({
       ignoreEnvFile: false,
     }),
@@ -34,6 +42,8 @@ import { UsersModule } from './users/users.module';
       },
       inject: [ConfigService],
     }),
+
+    // App Modules
     AuthModule,
     UsersModule,
   ],

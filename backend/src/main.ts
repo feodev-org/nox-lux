@@ -2,11 +2,18 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 
 declare const module: any;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Basic security
+  app.use(helmet());
+  app.enableCors();
+
+  // API configuration
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,
@@ -18,6 +25,7 @@ async function bootstrap() {
     }),
   );
 
+  // OpenAPI Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Nox Lux API')
     .setDescription('Provide data to the Nox Lux iOS and Android apps')
@@ -26,8 +34,11 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('openapi', app, document);
+
+  // Start server
   await app.listen(5000);
 
+  // Dev hot reload
   if (module.hot) {
     module.hot.accept();
     module.hot.dispose(() => app.close());

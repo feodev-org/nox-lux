@@ -1,15 +1,8 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Logger,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Logger, Request, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserDto } from '../interfaces';
-import { ApiBearerAuth, ApiHideProperty } from '@nestjs/swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller({
   version: '1',

@@ -1,5 +1,5 @@
 import { IsNumber, IsOptional } from 'class-validator';
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class MongoQueryFilters {
   @IsOptional()
@@ -16,6 +16,8 @@ export class MongoCount {
 }
 
 export class UserDto {
+  userId: number;
+
   @ApiProperty()
   email: string;
 
