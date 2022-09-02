@@ -1,8 +1,20 @@
-import { Controller, Get, Logger, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Logger,
+  Post,
+  Req,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { UserDto } from '../interfaces';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { User, UserProfile, UserPublic } from './models/user.model';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { IsNotEmpty } from 'class-validator';
 
 @Controller({
   version: '1',
@@ -16,7 +28,36 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async me(@Request() req): Promise<UserDto> {
-    return req.user;
+  async me(@Req() req): Promise<UserPublic> {
+    return {
+      email: req.user.email,
+      ...req.user.profile,
+    };
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('update')
+  async update(
+    @Req() req: any,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<UserProfile> {
+    const user: User = req.user;
+    return this.usersService.updateUser(user.email, updateUserDto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(
+    @Req() req: any,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ): Promise<User> {
+    const user: User = req.user;
+    return await this.usersService.changePassword(
+      user.email,
+      user.password,
+      changePasswordDto,
+    );
   }
 }

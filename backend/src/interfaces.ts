@@ -15,17 +15,6 @@ export class MongoCount {
   count: number;
 }
 
-export class UserDto {
-  userId: number;
-
-  @ApiProperty()
-  email: string;
-
-  @ApiProperty()
-  password: string;
-}
-
-export class AccessToken {
-  @ApiProperty()
-  access_token: string;
-}
+export const prismaUserProfileIncludeQuery = {
+  profile: { select: { firstName: true, lastName: true } },
+};
