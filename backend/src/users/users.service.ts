@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { User, UserProfile } from './models/user.model';
+import { User, UserProfile, UserPublic } from './models/user.model';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { PasswordService } from '../password.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { prismaUserProfileIncludeQuery } from '../interfaces';
+import { toUserPublic } from './users.helpers';
 
 @Injectable()
 export class UsersService {
@@ -21,24 +22,31 @@ export class UsersService {
   }
 
   async updateUser(
-    email: string,
+    user: User,
     updateUserDto: UpdateUserDto,
-  ): Promise<UserProfile> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
-    return await this.prisma.userProfile.upsert({
+  ): Promise<UserPublic> {
+    const updatedUserProfile = await this.prisma.userProfile.upsert({
       update: updateUserDto,
       create: { userId: user.id, ...updateUserDto },
       where: {
         userId: user.id,
       },
+      select: {
+        firstName: true,
+        lastName: true,
+      },
     });
+    return {
+      email: user.email,
+      ...updatedUserProfile,
+    };
   }
 
   async changePassword(
     email: string,
     currentPassword: string,
     changePasswordDto: ChangePasswordDto,
-  ): Promise<User> {
+  ): Promise<UserPublic> {
     const passwordValid = await this.passwordService.validatePassword(
       changePasswordDto.oldPassword,
       currentPassword,
@@ -52,12 +60,13 @@ export class UsersService {
       changePasswordDto.newPassword,
     );
 
-    return this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       data: {
         password: hashedPassword,
       },
       where: { email },
       include: prismaUserProfileIncludeQuery,
     });
+    return toUserPublic(updatedUser);
   }
 }

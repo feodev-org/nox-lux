@@ -15,6 +15,7 @@ import { User, UserProfile, UserPublic } from './models/user.model';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IsNotEmpty } from 'class-validator';
+import { toUserPublic } from './users.helpers';
 
 @Controller({
   version: '1',
@@ -29,10 +30,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async me(@Req() req): Promise<UserPublic> {
-    return {
-      email: req.user.email,
-      ...req.user.profile,
-    };
+    return toUserPublic(req.user);
   }
 
   @ApiBearerAuth()
@@ -41,9 +39,9 @@ export class UsersController {
   async update(
     @Req() req: any,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<UserProfile> {
+  ): Promise<UserPublic> {
     const user: User = req.user;
-    return this.usersService.updateUser(user.email, updateUserDto);
+    return this.usersService.updateUser(user, updateUserDto);
   }
 
   @ApiBearerAuth()
@@ -52,7 +50,7 @@ export class UsersController {
   async changePassword(
     @Req() req: any,
     @Body() changePasswordDto: ChangePasswordDto,
-  ): Promise<User> {
+  ): Promise<UserPublic> {
     const user: User = req.user;
     return await this.usersService.changePassword(
       user.email,

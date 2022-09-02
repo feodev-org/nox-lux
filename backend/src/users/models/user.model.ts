@@ -27,8 +27,8 @@ export class UserPublic {
   email: string;
 
   @ApiProperty()
-  firstName: string;
+  firstName?: string;
 
   @ApiProperty()
-  lastName: string;
+  lastName?: string;
 }
