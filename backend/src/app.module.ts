@@ -23,25 +23,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, 'static'),
     }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
-        const username: string = configService.get<string>(
-          'MONGO_INITDB_ROOT_USERNAME',
-        );
-        const password: string = configService.get<string>(
-          'MONGO_INITDB_ROOT_PASSWORD',
-        );
-        const hostname: string = configService.get<string>('MONGO_HOSTNAME');
-        const database: string = configService.get<string>(
-          'MONGO_INITDB_DATABASE',
-        );
-        return {
-          uri: `mongodb://${username}:${password}@${hostname}:27017/${database}?authSource=admin`,
-        };
-      },
-      inject: [ConfigService],
-    }),
 
     // App Modules
     AuthModule,
