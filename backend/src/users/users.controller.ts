@@ -1,20 +1,21 @@
 import {
   Body,
+  CACHE_MANAGER,
   Controller,
   Get,
+  Inject,
   Logger,
   Post,
   Req,
-  Request,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { Cache } from 'cache-manager';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { ApiBearerAuth } from '@nestjs/swagger';
-import { User, UserProfile, UserPublic } from './models/user.model';
+import { User, UserPublic } from './models/user.model';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { IsNotEmpty } from 'class-validator';
 import { toUserPublic } from './users.helpers';
 
 @Controller({
@@ -24,13 +25,25 @@ import { toUserPublic } from './users.helpers';
 export class UsersController {
   private readonly logger = new Logger(UsersController.name);
 
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly usersService: UsersService,
+  ) {}
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async me(@Req() req): Promise<UserPublic> {
-    return toUserPublic(req.user);
+    const cachedUser: UserPublic = await this.cacheManager.get<
+      UserPublic | undefined
+    >(req.user.email);
+    if (cachedUser != null) {
+      return cachedUser;
+    } else {
+      const userPublic: UserPublic = toUserPublic(req.user);
+      await this.cacheManager.set<UserPublic>(req.user.email, userPublic);
+      return userPublic;
+    }
   }
 
   @ApiBearerAuth()
