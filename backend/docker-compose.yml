@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  feodev-db:
+    image: postgres:14.5-alpine
+    env_file: .env
+    volumes:
+      - feodev-db-volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  feodev-cache:
+    image: redis:7.0.4-alpine
+    env_file: .env
+    command: redis-server --save 20 1 --loglevel "$REDIS_LOGLEVEL" --requirepass "$REDIS_PASSWORD"
+    volumes:
+      - feodev-cache-volume:/data
+    ports:
+      - '6379:6379'
+
+volumes:
+  feodev-db-volume:
+  feodev-cache-volume:
