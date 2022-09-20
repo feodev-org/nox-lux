@@ -41,7 +41,7 @@ async function bootstrap() {
   await prismaService.enableShutdownHooks(app);
 
   // Start server
-  await app.listen(5000);
+  await app.listen(3000);
 
   // Dev hot reload
   if (module.hot) {
