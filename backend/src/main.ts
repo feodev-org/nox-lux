@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import { PrismaService } from './prisma.service';
 
 declare const module: any;
 
@@ -35,8 +36,12 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('openapi', app, document);
 
+  // Setup Prisma
+  const prismaService = app.get(PrismaService);
+  await prismaService.enableShutdownHooks(app);
+
   // Start server
-  await app.listen(5000);
+  await app.listen(3000);
 
   // Dev hot reload
   if (module.hot) {

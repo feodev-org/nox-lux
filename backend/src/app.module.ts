@@ -1,12 +1,14 @@
-import { Logger, Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import * as redisStore from 'cache-manager-redis-store';
+import type { ClientOpts } from 'redis';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -23,29 +25,24 @@ import { ThrottlerModule } from '@nestjs/throttler';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, 'static'),
     }),
-    MongooseModule.forRootAsync({
+    CacheModule.registerAsync<ClientOpts>({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
-        const username: string = configService.get<string>(
-          'MONGO_INITDB_ROOT_USERNAME',
-        );
-        const password: string = configService.get<string>(
-          'MONGO_INITDB_ROOT_PASSWORD',
-        );
-        const hostname: string = configService.get<string>('MONGO_HOSTNAME');
-        const database: string = configService.get<string>(
-          'MONGO_INITDB_DATABASE',
-        );
-        return {
-          uri: `mongodb://${username}:${password}@${hostname}:27017/${database}?authSource=admin`,
-        };
-      },
       inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        store: redisStore,
+        host: configService.get<string>('REDIS_HOST'),
+        port: configService.get<string>('REDIS_PORT'),
+        username: configService.get<string>('REDIS_USERNAME'),
+        password: configService.get<string>('REDIS_PASSWORD'),
+        ttl: configService.get<string>('REDIS_TTL'),
+      }),
+      isGlobal: true,
     }),
 
     // App Modules
     AuthModule,
     UsersModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
